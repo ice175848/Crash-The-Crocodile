@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -29,7 +30,59 @@ namespace 打2魚
         private bool[] Crocodiles = new bool[100];
         private int[] Crocodile_OnMap = new int[5];
         private TableLayoutPanel tableLayoutPanel;
+        private Timer fadeOutTimer;
+        private float currentOpacity = 1.0f; // 初始透明度為1（完全不透明）
 
+        private void StartFadeOutEffect()
+        {
+            currentOpacity = 1.0f;  // 在每次開始淡出效果時，重置透明度
+            if (fadeOutTimer == null)
+            {
+                // 初始化Timer
+                fadeOutTimer = new Timer();
+                fadeOutTimer.Interval = 65;  // 每100毫秒更新一次
+                fadeOutTimer.Tick += FadeOutTick;
+            }
+            fadeOutTimer.Start();  // 開始淡出效果
+        }
+
+        private void FadeOutTick(object sender, EventArgs e)
+        {
+            // 每次減少透明度
+            currentOpacity -= 0.1f; // 每次減少0.1的透明度
+            if (currentOpacity <= 0.0f)
+            {
+                // 當透明度為0或更低時，停止Timer並隱藏圖片
+                fadeOutTimer.Stop();
+                pictureBox.Image = null; // 或者直接隱藏圖片
+            }
+            else
+            {
+                // 更新圖片的透明度
+                ApplyImageOpacity(pictureBox, currentOpacity);
+            }
+        }
+
+        // 應用透明度到圖片
+        private void ApplyImageOpacity(PictureBox pictureBox, float opacity)
+        {
+            Image originalImage = pictureBox.Image;
+            Bitmap bmp = new Bitmap(originalImage.Width, originalImage.Height);
+
+            // 使用Graphics處理圖片透明度
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                ColorMatrix matrix = new ColorMatrix();
+                matrix.Matrix33 = opacity;  // 設置透明度
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                // 繪製具有透明度的圖片
+                g.DrawImage(originalImage, new Rectangle(0, 0, bmp.Width, bmp.Height), 0, 0, originalImage.Width, originalImage.Height, GraphicsUnit.Pixel, attributes);
+            }
+
+            pictureBox.Image = bmp;  // 更新PictureBox中的圖片
+        }
 
         public Form1()
         {
@@ -116,40 +169,45 @@ namespace 打2魚
             this.Controls.AddRange(btns);
             Random_Crocodile();
             DisplayCharts();
-
+            StartFadeOutEffect();
         }
 
         private void InitializeUI()
-        {
-            // 初始化 TableLayoutPanel
+        {// 初始化 TableLayoutPanel
             tableLayoutPanel = new TableLayoutPanel
             {
                 ColumnCount = 2,
                 AutoSize = true,
                 Location = new Point(1111, 12),
-                BackColor = Color.LightGray
+                BackColor = Color.LightGray, // 設定背景顏色
+                Padding = new Padding(5), // 設置內邊距
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single // 添加邊框
             };
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
             // 添加表頭
-            tableLayoutPanel.Controls.Add(new Label { Text = "Name", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
-            tableLayoutPanel.Controls.Add(new Label { Text = "Time", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleRight }, 1, 0);
+            tableLayoutPanel.Controls.Add(CreateStyledLabel("Name", true), 0, 0);
+            tableLayoutPanel.Controls.Add(CreateStyledLabel("Time", true), 1, 0);
 
             this.Controls.Add(tableLayoutPanel);
 
             // 添加 Crocodiles 遊戲的其他 UI
-            pictureBox.Location = new Point(550, 123);
-            pictureBox.Size = new Size(557, 404);
-            pictureBox.Image = croco;
-            //pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox.Location = new Point(550, 123);// 調整 PictureBox 的大小
+            pictureBox.Size = new Size(300, 300);  // 例如，縮小至 200x200 的大小
+
+            // 設定 SizeMode 為 Zoom，使圖片自動適應 PictureBox 的大小
+            pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+
+            pictureBox.Image = Image.FromFile($"D:\\EscapeCroco1.png");
+            ;
 
             this.Controls.Add(pictureBox);
 
             score_Label = new Label
             {
                 Location = new Point(550, 12),
-                Text = "score_Label:"
+                Text = "score:"
             };
             this.Controls.Add(score_Label);
 
@@ -174,10 +232,23 @@ namespace 打2魚
                 crocEsc[i] = Image.FromFile($"D:\\EscapeCroco{i + 1}.png");
             }
 
-            CustomizeLabelBackgroundColor(score_Label, Color.LightGray, Color.Red, 14);
-            CustomizeLabelBackgroundColor(DateTime_Label, Color.LightGray, Color.Red, 12);
-            CustomizeLabelBackgroundColor(NowTime_Label, Color.LightGray, Color.Red, 12);
-            
+            CustomizeLabelBackgroundColor(score_Label, Color.LightGray, Color.Blue, 14);
+            CustomizeLabelBackgroundColor(DateTime_Label, Color.LightGray, Color.Firebrick, 12);
+            CustomizeLabelBackgroundColor(NowTime_Label, Color.LightGray, Color.Firebrick, 12);
+
+        }
+        private Label CreateStyledLabel(string text, bool isHeader = false)
+        {
+            return new Label
+            {
+                Text = text,
+                Font = isHeader ? new Font("Segoe UI", 12F, FontStyle.Bold) : new Font("Segoe UI", 10F),
+                ForeColor = isHeader ? Color.Black : Color.Red,
+                BackColor = Color.White, // 每個 Label 都有自己的背景色
+                TextAlign = ContentAlignment.MiddleCenter, // 設置對齊方式
+                Dock = DockStyle.Fill, // 讓 Label 填滿整個儲存格
+                Margin = new Padding(5) // 添加間距
+            };
         }
         private void DisplayCharts()
         {
@@ -257,11 +328,15 @@ namespace 打2魚
                 clickedButton.Enabled = false;
                 score += 10;
                 pictureBox.Image = crocDie[rnd.Next(0, 3)];
+                StartFadeOutEffect();  // 開始淡出效果
+
             }
             else
             {
                 pictureBox.Image = crocEsc[rnd.Next(0, 3)];
                 score -= 5;
+                StartFadeOutEffect();  // 開始淡出效果
+
             }
             score_display();
 

@@ -37,8 +37,8 @@
             // 
             AutoScaleDimensions = new SizeF(9F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = SystemColors.ControlLight;
-            ClientSize = new Size(1407, 567);
+            BackColor = Color.LightGray;
+            ClientSize = new Size(1378, 567);
             Font = new Font("微軟正黑體", 11F, FontStyle.Bold, GraphicsUnit.Point, 136);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4);
