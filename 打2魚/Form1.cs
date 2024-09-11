@@ -26,10 +26,8 @@ namespace 打2魚
         private Random rnd = new Random();
         private int size = 50;
         private int score;
-        private int CrocoNO;
         private bool[] Crocodiles = new bool[100];
         private int[] Crocodile_OnMap = new int[5];
-        private Label charts_Label;
         private TableLayoutPanel tableLayoutPanel;
 
 
@@ -117,7 +115,7 @@ namespace 打2魚
             CreateButton();
             this.Controls.AddRange(btns);
             Random_Crocodile();
-            //DisplayCharts();
+            DisplayCharts();
 
         }
 
@@ -144,6 +142,8 @@ namespace 打2魚
             pictureBox.Location = new Point(550, 123);
             pictureBox.Size = new Size(557, 404);
             pictureBox.Image = croco;
+            //pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+
             this.Controls.Add(pictureBox);
 
             score_Label = new Label
@@ -167,6 +167,12 @@ namespace 打2魚
                 Location = new Point(550, 88)
             };
             this.Controls.Add(NowTime_Label);
+
+            for(int i=0;i<3;i++)
+            {
+                crocDie[i] = Image.FromFile($"D:\\2fishDie{i + 1}.png");
+                crocEsc[i] = Image.FromFile($"D:\\EscapeCroco{i + 1}.png");
+            }
 
             CustomizeLabelBackgroundColor(score_Label, Color.LightGray, Color.Red, 14);
             CustomizeLabelBackgroundColor(DateTime_Label, Color.LightGray, Color.Red, 12);
@@ -278,7 +284,9 @@ namespace 打2魚
             string playerName = Prompt.ShowDialog("請輸入你的名字", "遊戲結束");
             File.AppendAllText("charts.txt", $"Name: {playerName}, Time: {elapsedTime:hh\\:mm\\:ss}\n");
 
-            charts_Label.Text = "排行榜:\n" + ReadCharts();
+            // 更新排行榜
+            DisplayCharts();
+
             MessageBox.Show("EndGame!");
             Environment.Exit(0);
         }
