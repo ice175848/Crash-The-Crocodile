@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using Timer = System.Windows.Forms.Timer;
 
@@ -29,6 +30,8 @@ namespace 打2魚
         private bool[] Crocodiles = new bool[100];
         private int[] Crocodile_OnMap = new int[5];
         private Label charts_Label;
+        private TableLayoutPanel tableLayoutPanel;
+
 
         public Form1()
         {
@@ -57,6 +60,25 @@ namespace 打2魚
                 times = 0;
                 Random_Crocodile();
             }
+        }
+        private void CustomizeLabel(Label lbl, int fontSize, Image backgroundImage)
+        {
+            lbl.Font = new Font("Segoe UI", fontSize, FontStyle.Bold);
+            lbl.ForeColor = Color.FromArgb(231, 76, 60);  // 設定字體顏色
+            lbl.BackgroundImage = backgroundImage; // 設置背景圖片
+            lbl.BackgroundImageLayout = ImageLayout.Stretch; // 讓圖片適應 Label 大小
+        }
+
+        private void CustomizeButton(Button btn)
+        {
+            btn.BackColor = Color.FromArgb(52, 152, 219);  // 按鈕背景顏色
+            btn.ForeColor = Color.White;  // 字體顏色
+            btn.FlatStyle = FlatStyle.Flat;  // 平面樣式
+            btn.FlatAppearance.BorderSize = 0;  // 移除邊框
+            btn.Font = new Font("Segoe UI", 10F, FontStyle.Bold);  // 改變字體和大小
+            btn.Size = new Size(size + 5, size + 5);  // 調整按鈕大小，讓按鈕更醒目
+            btn.Cursor = Cursors.Hand; // 改變滑鼠圖示
+
         }
 
         private void Random_Crocodile()
@@ -95,11 +117,31 @@ namespace 打2魚
             CreateButton();
             this.Controls.AddRange(btns);
             Random_Crocodile();
+            //DisplayCharts();
+
         }
 
         private void InitializeUI()
         {
-            pictureBox.Location = new Point(550, 150);
+            // 初始化 TableLayoutPanel
+            tableLayoutPanel = new TableLayoutPanel
+            {
+                ColumnCount = 2,
+                AutoSize = true,
+                Location = new Point(1111, 12),
+                BackColor = Color.LightGray
+            };
+            tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+            tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+
+            // 添加表頭
+            tableLayoutPanel.Controls.Add(new Label { Text = "Name", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
+            tableLayoutPanel.Controls.Add(new Label { Text = "Time", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleRight }, 1, 0);
+
+            this.Controls.Add(tableLayoutPanel);
+
+            // 添加 Crocodiles 遊戲的其他 UI
+            pictureBox.Location = new Point(550, 123);
             pictureBox.Size = new Size(557, 404);
             pictureBox.Image = croco;
             this.Controls.Add(pictureBox);
@@ -126,26 +168,60 @@ namespace 打2魚
             };
             this.Controls.Add(NowTime_Label);
 
-            charts_Label = new Label
-            {
-                AutoSize = true,
-                Location = new Point(1111, 12),
-                Text = "排行榜:\n" + ReadCharts()
-            };
-            this.Controls.Add(charts_Label);
+            CustomizeLabelBackgroundColor(score_Label, Color.LightGray, Color.Red, 14);
+            CustomizeLabelBackgroundColor(DateTime_Label, Color.LightGray, Color.Red, 12);
+            CustomizeLabelBackgroundColor(NowTime_Label, Color.LightGray, Color.Red, 12);
+            
+        }
+        private void DisplayCharts()
+        {
+            // 清空舊資料，保留表頭
+            tableLayoutPanel.Controls.Clear();
 
-            for (int i = 0; i < 3; i++)
+            // 添加表頭
+            tableLayoutPanel.Controls.Add(new Label { Text = "Name", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
+            tableLayoutPanel.Controls.Add(new Label { Text = "Time", Font = new Font("Segoe UI", 12F, FontStyle.Bold), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleRight }, 1, 0);
+
+            // 讀取排行榜並整理輸出
+            var chartData = ReadCharts();
+            int row = 1;  // 從第 1 行開始填充資料
+            foreach (var entry in chartData)
             {
-                crocDie[i] = Image.FromFile($"D:\\2fishDie{i + 1}.png");
-                crocEsc[i] = Image.FromFile($"D:\\EscapeCroco{i+1}.png");
+                tableLayoutPanel.Controls.Add(new Label { Text = entry.Name, Font = new Font("Segoe UI", 10F), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleLeft }, 0, row);
+                tableLayoutPanel.Controls.Add(new Label { Text = entry.Time, Font = new Font("Segoe UI", 10F), ForeColor = Color.Red, TextAlign = ContentAlignment.MiddleRight }, 1, row);
+                row++;
             }
         }
 
-        private string ReadCharts()
+        private List<(string Name, string Time)> ReadCharts()
         {
-            return File.Exists("charts.txt") ? File.ReadAllText("charts.txt") : "No records";
+            var charts = new List<(string Name, string Time)>();
+
+            if (File.Exists("charts.txt"))
+            {
+                var lines = File.ReadAllLines("charts.txt");
+                foreach (var line in lines)
+                {
+                    // 假設文件的格式是 "Name: playerName, Time: elapsedTime"
+                    var parts = line.Split(new[] { "Name: ", ", Time: " }, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length == 2)
+                    {
+                        // 處理空名字的情況
+                        string name = string.IsNullOrWhiteSpace(parts[0]) ? "Unknown" : parts[0];
+                        charts.Add((name, parts[1]));
+                    }
+                }
+            }
+            return charts;
         }
 
+        private void CustomizeLabelBackgroundColor(Label lbl, Color backgroundColor, Color textColor, int fontSize)
+        {
+            lbl.BackColor = backgroundColor;  // 設定背景顏色
+            lbl.ForeColor = textColor;        // 設定字體顏色
+            lbl.Font = new Font("Segoe UI", fontSize, FontStyle.Bold);  // 設定字體樣式和大小
+        }
         private void CreateButton()
         {
             for (int i = 0; i < 10; i++)
@@ -158,6 +234,8 @@ namespace 打2魚
                         Size = new Size(size, size),
                         Location = new Point(12 + j * (size + 1), 12 + i * (size + 1))
                     };
+                    CustomizeButton(btns[i * 10 + j]);  // 套用自定義的按鈕樣式
+
                     btns[i * 10 + j].Click += btns_Click;
                 }
             }
@@ -198,7 +276,7 @@ namespace 打2魚
             NowTime_Label.Text = $"花費時間: {elapsedTime:hh\\:mm\\:ss}";
 
             string playerName = Prompt.ShowDialog("請輸入你的名字", "遊戲結束");
-            File.AppendAllText("charts.txt", $"Name: {playerName}, Score: {score}, Time: {elapsedTime:hh\\:mm\\:ss}\n");
+            File.AppendAllText("charts.txt", $"Name: {playerName}, Time: {elapsedTime:hh\\:mm\\:ss}\n");
 
             charts_Label.Text = "排行榜:\n" + ReadCharts();
             MessageBox.Show("EndGame!");

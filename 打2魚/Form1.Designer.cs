@@ -37,10 +37,11 @@
             // 
             AutoScaleDimensions = new SizeF(9F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1806, 893);
+            BackColor = SystemColors.ControlLight;
+            ClientSize = new Size(1407, 567);
             Font = new Font("微軟正黑體", 11F, FontStyle.Bold, GraphicsUnit.Point, 136);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            Margin = new Padding(4, 4, 4, 4);
+            Margin = new Padding(4);
             Name = "Form1";
             Text = "打鱷魚";
             Load += Form1_Load;
