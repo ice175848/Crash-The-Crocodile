@@ -29,16 +29,20 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             timer1 = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(9F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1405, 705);
+            ClientSize = new Size(1806, 893);
+            Font = new Font("微軟正黑體", 11F, FontStyle.Bold, GraphicsUnit.Point, 136);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 4, 4, 4);
             Name = "Form1";
-            Text = "Form1";
+            Text = "打鱷魚";
             Load += Form1_Load;
             ResumeLayout(false);
         }

@@ -21,6 +21,7 @@ namespace 打2魚
         private PictureBox pictureBox = new PictureBox();
         private Image croco = Image.FromFile("D:\\crocoIcon.png");
         private Image[] crocDie = new Image[3];
+        private Image[] crocEsc = new Image[3];
         private Random rnd = new Random();
         private int size = 50;
         private int score;
@@ -99,7 +100,7 @@ namespace 打2魚
         private void InitializeUI()
         {
             pictureBox.Location = new Point(550, 150);
-            pictureBox.Size = new Size(200, 200);
+            pictureBox.Size = new Size(557, 404);
             pictureBox.Image = croco;
             this.Controls.Add(pictureBox);
 
@@ -136,6 +137,7 @@ namespace 打2魚
             for (int i = 0; i < 3; i++)
             {
                 crocDie[i] = Image.FromFile($"D:\\2fishDie{i + 1}.png");
+                crocEsc[i] = Image.FromFile($"D:\\EscapeCroco{i+1}.png");
             }
         }
 
@@ -174,6 +176,7 @@ namespace 打2魚
             }
             else
             {
+                pictureBox.Image = crocEsc[rnd.Next(0, 3)];
                 score -= 5;
             }
             score_display();
